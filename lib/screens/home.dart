@@ -5,6 +5,7 @@ import 'package:heartsync/screens/stressleveldisplay.dart';
 import 'package:heartsync/screens/connectiondisplay.dart';
 import 'package:heartsync/screens/sync.dart';
 import 'package:heartsync/screens/heartsynclogo.dart';
+import 'package:heartsync/screens/simulationsync.dart';
 
 
 
@@ -139,15 +140,26 @@ class HomeScreenState extends State<HomeScreen> {
             ConnectionStatus(isConnected: isConnected),
             const SizedBox(height: 20),
 
-            const SizedBox(height: 10),
 
-              Sync(onPressed: () {
+           SimulationSync(onPressed: () {
               // Toggle connection within BluetoothConnection
               setState(() {
                   isAnimating = !isAnimating; // Toggle the animation on button press
                 });
 
               bluetoothConnection.toggleBluetoothConnection();
+
+            }),
+
+            const SizedBox(height: 10),
+
+              Sync(onPressed: () {
+              // Toggle connection within BluetoothConnection
+              setState(() {
+              //    isAnimating = !isAnimating; // Toggle the animation on button press
+                });
+
+            //  bluetoothConnection.toggleBluetoothConnection();
 
             }),
 
