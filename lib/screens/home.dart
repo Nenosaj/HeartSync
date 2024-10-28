@@ -147,7 +147,7 @@ class HomeScreenState extends State<HomeScreen> {
                   isAnimating = !isAnimating; // Toggle the animation on button press
                 });
 
-              bluetoothConnection.toggleBluetoothConnection();
+                bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: true);
 
             }),
 
@@ -156,10 +156,10 @@ class HomeScreenState extends State<HomeScreen> {
               Sync(onPressed: () {
               // Toggle connection within BluetoothConnection
               setState(() {
-              //    isAnimating = !isAnimating; // Toggle the animation on button press
+                  isAnimating = !isAnimating; // Toggle the animation on button press
                 });
 
-            //  bluetoothConnection.toggleBluetoothConnection();
+            bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: false);
 
             }),
 
