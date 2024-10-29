@@ -91,6 +91,10 @@ class BluetoothConnection {
     // Start scanning for devices
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
 
+    Future<void> _scanForDevices(BuildContext context) async {
+  scannedDevices.clear(); // Clear the list before each scan
+  FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+    }
     // Listen for scan results
     FlutterBluePlus.scanResults.listen((results) {
       for (ScanResult result in results) {
@@ -104,32 +108,44 @@ class BluetoothConnection {
     await FlutterBluePlus.isScanning.where((scanning) => scanning == false).first;
 
     // Show the list of scanned devices to the user
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choose a Bluetooth Device'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: scannedDevices.length,
-              itemBuilder: (BuildContext context, int index) {
-                BluetoothDevice device = scannedDevices[index];
-                return ListTile(
-                  title: Text(device.remoteId.toString()), // Show device name or ID
-                  onTap: () {
-                    Navigator.pop(context); // Close the dialog on selection
-                    connectToDevice(device); // Connect to the selected device
-                  },
-                );
+showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Devices'),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                FlutterBluePlus.stopScan();
+                _scanForDevices(context); // Restart scan on refresh
               },
             ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 350,
+          child: ListView.builder(
+            itemCount: scannedDevices.length,
+            itemBuilder: (BuildContext context, int index) {
+              BluetoothDevice device = scannedDevices[index];
+              return ListTile(
+                title: Text(device.remoteId.toString()),
+                onTap: () {
+                  Navigator.pop(context);
+                  connectToDevice(device);
+                },
+              );
+            },
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
    // Connect to a specific device
   Future<void> connectToDevice(BluetoothDevice device) async {
@@ -151,37 +167,40 @@ class BluetoothConnection {
   }
 
    // Discover services and characteristics from the connected device
-   void discoverServicesAndCharacteristics() async {
+ void discoverServicesAndCharacteristics() async {
   if (connectedDevice == null) return;
 
-  // ignore: avoid_print
   print("Discovering services...");
   List<BluetoothService> services = await connectedDevice!.discoverServices();
   
   for (BluetoothService service in services) {
-    // ignore: avoid_print
-    print('Service: ${service.uuid}');
-    
-    // Loop through characteristics of the service
     for (BluetoothCharacteristic char in service.characteristics) {
-      // ignore: avoid_print
       print('Characteristic: ${char.uuid}');
       
-      // No need to process characteristic data, just display the available ones
-      // Connect successfully and check if this characteristic has read or notify properties
+      // Check if notifications are supported and if bonding is complete
       if (char.properties.notify) {
-        await char.setNotifyValue(true);  // Enable notifications
-        // ignore: avoid_print
-        print("Subscribed to notifications for characteristic: ${char.uuid}");
+        try {
+          await Future.delayed(Duration(seconds: 1)); // Delay for stable connection
+          await char.setNotifyValue(true); // Enable notifications
+          print("Subscribed to notifications for characteristic: ${char.uuid}");
+        } catch (e) {
+          print("Error setting notifications: $e");
+        }
       }
+
+      // Optional: Read characteristic if it supports reading
       if (char.properties.read) {
-        var value = await char.read();  // Read the characteristic value
-        // ignore: avoid_print
-        print('Read characteristic: ${char.uuid}, value: $value');
+        try {
+          var value = await char.read();
+          print('Read characteristic: ${char.uuid}, value: $value');
+        } catch (e) {
+          print("Error reading characteristic: $e");
+        }
       }
     }
   }
 }
+
 
 
   /*  void discoverServicesAndCharacteristics() async {

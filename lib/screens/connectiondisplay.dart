@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ConnectionStatus extends StatelessWidget {
   final bool isConnected;
+  
 
   const ConnectionStatus({super.key, required this.isConnected});
 

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 class Sync extends StatelessWidget {
   final Function onPressed;
+    final String label; // New: Dynamic label
 
-  const Sync({super.key, required this.onPressed});
+
+  const Sync({super.key, required this.onPressed, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +20,9 @@ class Sync extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: const Text(
-          'SYNC',
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );

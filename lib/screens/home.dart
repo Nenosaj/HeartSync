@@ -40,6 +40,8 @@ class HomeScreenState extends State<HomeScreen> {
         setState(() {
           isConnected = connected; // Update UI when connection status changes
             ("Connection Changed: $isConnected");
+          isAnimating = connected; // Start animation only when connected
+
 
         });
       },
@@ -83,6 +85,20 @@ class HomeScreenState extends State<HomeScreen> {
       stressState = "Deeply Relaxed";
     }
   }
+
+void toggleConnection() {
+    setState(() {
+      if (isConnected) {
+        bluetoothConnection.disconnectFromDevice();
+        isAnimating = false;
+      } else {
+        bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: false);
+        isAnimating = true;
+      }
+      isConnected = !isConnected;
+    });
+  }
+
   
    @override
   void dispose() {
@@ -153,15 +169,16 @@ class HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
-              Sync(onPressed: () {
-              // Toggle connection within BluetoothConnection
-              setState(() {
-                  isAnimating = !isAnimating; // Toggle the animation on button press
+              Sync(
+              onPressed: () {
+                setState(() {
+                  toggleConnection(); // Call the toggle connection function
                 });
+              },
+              label: isConnected ? "DESYNC" : "SYNC", // Dynamically update label
+              
+            ),
 
-            bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: false);
-
-            }),
 
             const SizedBox(height: 20), // Adjust the height to add space below the button
 
