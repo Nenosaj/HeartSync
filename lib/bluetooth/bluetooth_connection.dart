@@ -91,10 +91,6 @@ class BluetoothConnection {
     // Start scanning for devices
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
 
-    Future<void> _scanForDevices(BuildContext context) async {
-  scannedDevices.clear(); // Clear the list before each scan
-  FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-    }
     // Listen for scan results
     FlutterBluePlus.scanResults.listen((results) {
       for (ScanResult result in results) {
@@ -108,44 +104,32 @@ class BluetoothConnection {
     await FlutterBluePlus.isScanning.where((scanning) => scanning == false).first;
 
     // Show the list of scanned devices to the user
-showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Devices'),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                FlutterBluePlus.stopScan();
-                _scanForDevices(context); // Restart scan on refresh
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose a Bluetooth Device'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: ListView.builder(
+              itemCount: scannedDevices.length,
+              itemBuilder: (BuildContext context, int index) {
+                BluetoothDevice device = scannedDevices[index];
+                return ListTile(
+                  title: Text(device.remoteId.toString()), // Show device name or ID
+                  onTap: () {
+                    Navigator.pop(context); // Close the dialog on selection
+                    connectToDevice(device); // Connect to the selected device
+                  },
+                );
               },
             ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 350,
-          child: ListView.builder(
-            itemCount: scannedDevices.length,
-            itemBuilder: (BuildContext context, int index) {
-              BluetoothDevice device = scannedDevices[index];
-              return ListTile(
-                title: Text(device.remoteId.toString()),
-                onTap: () {
-                  Navigator.pop(context);
-                  connectToDevice(device);
-                },
-              );
-            },
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
    // Connect to a specific device
   Future<void> connectToDevice(BluetoothDevice device) async {
