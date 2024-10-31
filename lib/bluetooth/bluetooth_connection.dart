@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 class BluetoothConnection {
   bool isConnected = false;
+  bool isSync = false;
   Timer? dataTimer;
 
   BluetoothDevice? connectedDevice;
@@ -20,31 +21,9 @@ class BluetoothConnection {
     required this.onDataReceived,
   });
 
-  // Toggle the Bluetooth connection
-  void toggleBluetoothConnection({required BuildContext context, bool useSimulated = true}) {
-
-    isConnected = !isConnected;
-    onConnectionChanged(isConnected);
-
-    if (useSimulated) {
-      _toggleSimulatedConnection();
-    } else {
-      _checkBluetoothAndPermissions(context);
-    }
-  }
-
-    void _toggleSimulatedConnection() {
- 
-    if (isConnected) {
-      startSendingSimulatedData();
-    } else {
-      stopSendingData();
-    }
-  }
   
-
      // Check if Bluetooth is on, and request necessary permissions
-  Future<void> _checkBluetoothAndPermissions(BuildContext context) async {
+  Future<void> checkBluetoothAndPermissions(BuildContext context) async {
     // Check if Bluetooth is on
    FlutterBluePlus.adapterState.first.then((state) {
     if (state != BluetoothAdapterState.on) {
@@ -147,27 +126,32 @@ class BluetoothConnection {
     } catch (e) {
       // ignore: avoid_print
       print('Error connecting to device: $e');
+      isConnected = false;
+     onConnectionChanged(isConnected);
     }
   }
 
    // Discover services and characteristics from the connected device
  void discoverServicesAndCharacteristics() async {
   if (connectedDevice == null) return;
-
+  // ignore: avoid_print
   print("Discovering services...");
   List<BluetoothService> services = await connectedDevice!.discoverServices();
   
   for (BluetoothService service in services) {
     for (BluetoothCharacteristic char in service.characteristics) {
+      // ignore: avoid_print
       print('Characteristic: ${char.uuid}');
       
       // Check if notifications are supported and if bonding is complete
       if (char.properties.notify) {
         try {
-          await Future.delayed(Duration(seconds: 1)); // Delay for stable connection
+          await Future.delayed(const Duration(seconds: 1)); // Delay for stable connection
           await char.setNotifyValue(true); // Enable notifications
+          // ignore: avoid_print
           print("Subscribed to notifications for characteristic: ${char.uuid}");
         } catch (e) {
+          // ignore: avoid_print
           print("Error setting notifications: $e");
         }
       }
@@ -176,8 +160,10 @@ class BluetoothConnection {
       if (char.properties.read) {
         try {
           var value = await char.read();
+          // ignore: avoid_print
           print('Read characteristic: ${char.uuid}, value: $value');
         } catch (e) {
+          // ignore: avoid_print
           print("Error reading characteristic: $e");
         }
       }
@@ -219,51 +205,22 @@ class BluetoothConnection {
     }
   }
 
-
-
-  // Start sending simulated data at regular intervals
-  void startSendingSimulatedData() {
-    stopSendingData(); // Stop any previous timer
-    dataTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      final simulatedData = generateSimulatedData(timer.tick);
-      // ignore: avoid_print
-      print("Simulated Data - Heart Rate: ${simulatedData['heartRate']}, Stress Level: ${simulatedData['stressLevel']}"); // Debugging
-
-      onDataReceived(simulatedData['heartRate']!, simulatedData['stressLevel']!); // Notify the UI
+  
+  void toggleBluetoothConnection({required BuildContext context}) {
+  if (!isConnected) {
+    // If not connected, initiate the connection process
+    checkBluetoothAndPermissions(context).then((_) {
+      if (connectedDevice != null && isConnected) {
+        // Only set `isConnected = true` after successful connection
+        onConnectionChanged(isConnected);
+      }
     });
-  }
-
-  // Stop the simulated data stream
-  void stopSendingData() {
-    dataTimer?.cancel();
-  }
-
-  // Generate simulated heart rate and stress level
-  Map<String, int> generateSimulatedData(int tick) {
-    int simulatedHeartRate = 60 + tick % 40; // Simulate heart rate between 60 and 100
-    int simulatedStressLevel = 2 + (tick * 5) % 60; // Simulate stress level between 2 and 60
-    return {
-      'heartRate': simulatedHeartRate,
-      'stressLevel': simulatedStressLevel,
-    };
-  }
-
-  Map <String, int> realData() {
-    int realHeartRate = 0;
-    int realStressLevel = 0;
-    return {
-      'hearRate': realHeartRate,
-      'stressLevel':realStressLevel,
-    };
-
-  }
-
-  // Clean up resources (call this when you don't need the class anymore)
-  void dispose() {
-    dataTimer?.cancel();
+  } else {
+    // If already connected, disconnect
+    disconnectFromDevice();
   }
 }
 
-
+}
 
 
