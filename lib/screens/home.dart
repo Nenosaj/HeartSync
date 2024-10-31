@@ -6,6 +6,7 @@ import 'package:heartsync/screens/connectiondisplay.dart';
 import 'package:heartsync/screens/sync.dart';
 import 'package:heartsync/screens/heartsynclogo.dart';
 import 'package:heartsync/screens/simulationsync.dart';
+import 'package:heartsync/bluetooth/simulateddata.dart';
 
 
 
@@ -29,19 +30,55 @@ class HomeScreenState extends State<HomeScreen> {
 
 
   late BluetoothConnection bluetoothConnection;
+  late SimulatedData simulatedData;
 
    @override
   void initState() {
     super.initState();
 
-    // Initialize the BluetoothConnection instance
+    // Initialize the Simulated instance
+    simulatedData = SimulatedData(
+      onConnectionChangedSimulated: (connected) {
+        setState(() {
+            ("Connection Changed: $isConnected");
+          isConnected = connected; // Update UI when connection status changes
+          isAnimating = connected; // Start animation only when connected
+
+        });
+      },
+      onDataSimulatedReceived: (newHeartRate, newStressLevel) {
+        // ignore: avoid_print
+        print("Data Received - Heart Rate: $newHeartRate, Stress Level: $newStressLevel"); // Debugging
+
+        setState(() {
+          heartRate = newHeartRate; // Update heart rate with new data
+          stressLevel = newStressLevel; // Update stress level with new data
+
+         // Add the current stress level to stressLevelData for plotting
+          stressLevelData.add(newStressLevel); 
+          if (stressLevelData.length > 5) {
+            stressLevelData.removeAt(0); 
+          }
+
+          // Add the current minute to timeData
+          timeData.add(timeData.isEmpty ? 1 : timeData.last + 1); 
+          if (timeData.length > 5) {
+            timeData.removeAt(0); 
+          }
+          updateStressState(newStressLevel); // Update stress state based on new stress 
+          
+      
+        });
+      },
+    );
+
     bluetoothConnection = BluetoothConnection(
       onConnectionChanged: (connected) {
         setState(() {
-          isConnected = connected; // Update UI when connection status changes
             ("Connection Changed: $isConnected");
-          isAnimating = connected; // Start animation only when connected
 
+          isConnected = connected; // Update UI when connection status changes
+          isAnimating = connected; // Start animation only when connected
 
         });
       },
@@ -66,11 +103,17 @@ class HomeScreenState extends State<HomeScreen> {
           }
           updateStressState(newStressLevel); // Update stress state based on new stress 
           
-          
+      
         });
       },
     );
+
+
   }
+
+
+
+
 
   void updateStressState(int newStressLevel) {
     if (newStressLevel >= 2 && newStressLevel <= 15) {
@@ -85,27 +128,13 @@ class HomeScreenState extends State<HomeScreen> {
       stressState = "Deeply Relaxed";
     }
   }
-
-void toggleConnection() {
-    setState(() {
-      if (isConnected) {
-        bluetoothConnection.disconnectFromDevice();
-        isAnimating = false;
-      } else {
-        bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: false);
-        isAnimating = true;
-      }
-      isConnected = !isConnected;
-    });
-  }
-
   
    @override
-  void dispose() {
+  /*void dispose() {
     // Clean up the Bluetooth connection resources when the screen is disposed
     bluetoothConnection.dispose();
     super.dispose();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -158,26 +187,20 @@ void toggleConnection() {
 
 
            SimulationSync(onPressed: () {
-              // Toggle connection within BluetoothConnection
-              setState(() {
-                  isAnimating = !isAnimating; // Toggle the animation on button press
-                });
 
-                bluetoothConnection.toggleBluetoothConnection(context: context, useSimulated: true);
-
+                  simulatedData.toggleSimulatedConnection();
             }),
 
             const SizedBox(height: 10),
 
-              Sync(
-              onPressed: () {
-                setState(() {
-                  toggleConnection(); // Call the toggle connection function
-                });
-              },
-              label: isConnected ? "DESYNC" : "SYNC", // Dynamically update label
-              
-            ),
+           Sync(
+              isConnected: isConnected, // Pass the connection status
+                onPressed: () {
+                    bluetoothConnection.toggleBluetoothConnection(context: context);
+                  
+                },
+              ),
+
 
 
             const SizedBox(height: 20), // Adjust the height to add space below the button
