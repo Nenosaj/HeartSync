@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
 
 class Sync extends StatelessWidget {
-  final Function onPressed;
-    final String label; // New: Dynamic label
+  final bool isConnected; // Connection state passed from parent
+  final Function() onPressed; // Callback for button press
 
-
-  const Sync({super.key, required this.onPressed, required this.label});
+  const Sync({
+    super.key,
+    required this.onPressed,
+    required this.isConnected,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 300  ,
+      width: 300,
       child: ElevatedButton(
-        onPressed: () => onPressed(), // Function to handle the button press
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pink,
+          backgroundColor: isConnected ? Colors.blue : Colors.pink, // Optional color change
           padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
         ),
         child: Text(
-          label,
+          isConnected ? "DESYNC" : "SYNC", // Display text based on connection state
           style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
