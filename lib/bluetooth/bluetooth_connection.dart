@@ -173,25 +173,40 @@ class BluetoothConnection {
 
 
 
-  /*  void discoverServicesAndCharacteristics() async {
-    if (connectedDevice == null) return;
+    
 
-    List<BluetoothService> services = await connectedDevice!.discoverServices();
-    for (BluetoothService service in services) {
+  /*
+  
+  void discoverServicesAndCharacteristics() async {
+  if (connectedDevice == null) return;
+
+  // Discover services
+  List<BluetoothService> services = await connectedDevice!.discoverServices();
+
+  for (BluetoothService service in services) {
+    if (service.uuid.toString() == "12345678-1234-5678-1234-56789abcdef0") {
+      print("Found HeartSync Service");
+
       for (BluetoothCharacteristic char in service.characteristics) {
-        characteristic = char;
-        if (characteristic!.properties.notify) {
-          await characteristic!.setNotifyValue(true);
-          characteristic!.onValueReceived.listen((value) {
+        if (char.uuid.toString() == "12345678-1234-5678-1234-56789abcdef3") {  // Combined Characteristic UUID
+          print("Found Combined Characteristic");
+
+          // Subscribe to notifications for the combined characteristic
+          await char.setNotifyValue(true);
+          char.onValueReceived.listen((value) {
             int heartRate = value.isNotEmpty ? value[0] : 0;
             int stressLevel = value.length > 1 ? value[1] : 0;
-            onDataReceived(heartRate, stressLevel);
+            print("Heart Rate: $heartRate, Stress Level: $stressLevel");
+            onDataReceived(heartRate, stressLevel);  // Update both values in the UI
           });
         }
       }
     }
   }
-*/ // ! mao ni sa tinuod... kung maka test na ugma i uncomment ni
+}
+
+
+ */ // ! mao ni sa tinuod... kung maka test na ugma i uncomment ni
 
 
   // Disconnect from the connected device
