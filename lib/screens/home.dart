@@ -5,7 +5,7 @@ import 'package:heartsync/screens/stressleveldisplay.dart';
 import 'package:heartsync/screens/connectiondisplay.dart';
 import 'package:heartsync/screens/sync.dart';
 import 'package:heartsync/screens/heartsynclogo.dart';
-import 'package:heartsync/screens/simulationsync.dart';
+//import 'package:heartsync/screens/simulationsync.dart';
 import 'package:heartsync/bluetooth/simulateddata.dart';
 
 
@@ -186,12 +186,12 @@ class HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
 
 
-           SimulationSync(onPressed: () {
+          /* SimulationSync(onPressed: () {
 
                   simulatedData.toggleSimulatedConnection();
             }),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 10),*/
 
            Sync(
               isConnected: isConnected, // Pass the connection status
